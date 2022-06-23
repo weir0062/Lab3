@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Grenade.h"
 
 
 AFPSCharacter::AFPSCharacter()
@@ -27,6 +28,9 @@ AFPSCharacter::AFPSCharacter()
 	GunMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
 	GunMeshComponent->CastShadow = false;
 	GunMeshComponent->SetupAttachment(Mesh1PComponent, "GripPoint");
+
+	OnTakeAnyDamage.AddDynamic(this, &AFPSCharacter::TakeAnyDamage);
+
 }
 
 
@@ -38,11 +42,63 @@ void AFPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AFPSCharacter::Fire);
 
+
+	PlayerInputComponent->BindAction("Bomb", IE_Pressed, this, &AFPSCharacter::PickupBomb);
+	PlayerInputComponent->BindAction("Bomb", IE_Released, this, &AFPSCharacter::ThrowAwayBomb);
+
 	PlayerInputComponent->BindAxis("MoveForward", this, &AFPSCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFPSCharacter::MoveRight);
 
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+}
+
+
+void AFPSCharacter::PickupBomb()
+{
+	FVector Start = GetActorLocation();
+	FVector End = Start + CameraComponent->GetForwardVector() * 300;
+
+	FCollisionQueryParams TraceParams;
+	TraceParams.AddIgnoredActor(this);
+	TraceParams.bTraceComplex = true;
+	TraceParams.bReturnPhysicalMaterial = true;
+
+	FHitResult Hit(ForceInit);
+	GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_PhysicsBody, TraceParams);
+	DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 1, 0, 1.f);
+
+	AActor* HitRes = Hit.GetActor();
+	if (HitRes)
+	{
+		if (HitRes->IsA<AGrenade>())
+		{
+			Grenade = Cast<AGrenade>(HitRes);
+			Grenade->Pickup(GunMeshComponent);
+		}
+	}
+
+}
+
+void AFPSCharacter::ThrowAwayBomb()
+{
+	if (Grenade)
+	{
+		Grenade->Throw(GetActorForwardVector());
+		Grenade = nullptr;
+	}
+}
+
+void AFPSCharacter::TakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
+{
+	
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::FromInt(Damage), true);
+	PlayerHP -= Damage;
+	if (PlayerHP <= 0.0f)
+	{
+		APlayerController* PC = Cast<APlayerController>(GetOwner());
+		PC->SetInputMode(FInputModeUIOnly::FInputModeUIOnly());
+	}
 }
 
 

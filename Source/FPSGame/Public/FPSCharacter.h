@@ -68,5 +68,16 @@ public:
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return CameraComponent; }
 
+	
+
+
+	void PickupBomb();
+	void ThrowAwayBomb();
+	class AGrenade* Grenade = nullptr;
+	UFUNCTION()
+		void TakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+
+
+	float PlayerHP = 100;
 };
 
