@@ -6,6 +6,8 @@
 #include "PhysicsEngine/RadialForceComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "FPSProjectile.h"
+#include "FPSCharacter.h"
 // Sets default values
 AGrenade::AGrenade()
 {
@@ -31,7 +33,7 @@ AGrenade::AGrenade()
 void AGrenade::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	DefaultScale = GetActorScale3D();
 }
 
 // Called every frame
@@ -43,10 +45,17 @@ void AGrenade::Tick(float DeltaTime)
 
 void AGrenade::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	if (OtherActor->IsA<AFPSProjectile>())
+	{
+
+	}
+	else
+	{
 
 	FTimerHandle TimerHandle;
 	// Starting a timer
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AGrenade::Explode, 2.0f, false);
+	}
 }
 
 void AGrenade::Explode()
@@ -64,10 +73,15 @@ void AGrenade::Pickup(USkeletalMeshComponent* HoldingComp)
 
 }
 
-void AGrenade::Throw(FVector Direction)
+void AGrenade::Throw(AFPSCharacter* Player)
 {
-	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+//	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	Mesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 	Mesh->SetSimulatePhysics(true);
-	Mesh->AddImpulse(Direction * 200);
+	FVector Dir = Player->GetActorForwardVector()*200;
+	SetActorScale3D(DefaultScale);
+	Mesh->AddImpulse(Dir);
+	//Mesh->AddImpulse(Direction * 1200);
+	//Mesh->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 }
 

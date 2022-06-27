@@ -84,8 +84,9 @@ void AFPSCharacter::ThrowAwayBomb()
 {
 	if (Grenade)
 	{
-		Grenade->Throw(GetActorForwardVector());
+		Grenade->Throw(this);
 		Grenade = nullptr;
+
 	}
 }
 

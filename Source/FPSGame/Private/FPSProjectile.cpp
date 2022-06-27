@@ -3,6 +3,7 @@
 #include "FPSProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "Grenade.h"
 
 AFPSProjectile::AFPSProjectile() 
 {
@@ -37,9 +38,19 @@ void AFPSProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPr
 	// Only add impulse and destroy projectile if we hit a physics
 	if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL) && OtherComp->IsSimulatingPhysics())
 	{
-		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+		
 
 		Destroy();
+
+
+		if (OtherActor->IsA<AGrenade>())
+		{
+
+
+		}
+		else
+		{
+			OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 		if (OtherActor->GetActorScale3D().X > 0.5)
 		{
 			
@@ -54,6 +65,7 @@ void AFPSProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPr
 		else
 		{
 			OtherActor->Destroy();
+		}
 		}
 	}
 }

@@ -31,6 +31,8 @@ public:
 		UParticleSystem* ParticleSystem;
 	void Explode();
 	void Pickup(USkeletalMeshComponent* HoldingComp);
-	void Throw(FVector Direction);
+	void Throw(class AFPSCharacter* Player);
+
+	FVector DefaultScale;
 
 };
